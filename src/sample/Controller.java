@@ -22,12 +22,41 @@ public class Controller {
     private Label label_username;
 
     @FXML
-    private Label label_zoneID;
+    public Label label_zoneID;
 
     @FXML
     private TextField tf_password;
 
     @FXML
     private TextField tf_username;
+
+    public void determinLang() {
+        String userLanguage = System.getProperty("user.language");
+        System.out.println(userLanguage);
+
+        if (userLanguage == "fr") {
+            //translate to french
+            label_zoneID.setText("ID de zone : France");
+            label_password.setText("Mot de passe");
+            label_username.setText("Nom d'utilisateur");
+            btn_submit.setText("Identifiant");
+            label_banner.setText("Identifiant");
+        }
+        else {
+            label_zoneID.setText("Zone ID : America");
+        }
+    }
+
+    public void login() {
+        String username = tf_username.getText();
+        String password = tf_password.getText();
+
+        System.out.println(username + "  " + password);
+    }
+
+    @FXML public void initialize() {
+        System.out.println("INIT");
+        determinLang();
+    }
 
 }
