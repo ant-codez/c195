@@ -1,5 +1,7 @@
 package helper;
 
+import javafx.fxml.FXML;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -45,5 +47,7 @@ public abstract class JDBC {
             System.out.println(e.getMessage());
         }
     }
+
+
 
 }
