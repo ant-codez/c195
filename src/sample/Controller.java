@@ -15,8 +15,10 @@ import javafx.stage.Stage;
 import javafx.scene.control.ComboBox;
 
 import javax.xml.transform.Result;
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Controller {
     private Parent root;
@@ -39,6 +41,7 @@ public class Controller {
     private TextField tf_username;
 
     private static String userLanguage = System.getProperty("user.language");
+    public static HashMap<String, Integer> statesHashMap = new HashMap<String, Integer>();
 
     public static String getUserLanguage() {
         return userLanguage;
@@ -47,7 +50,7 @@ public class Controller {
     public void determinLang() {
         System.out.println(userLanguage);
 
-        if (userLanguage == "fr") {
+        if (userLanguage.equals("fr")) {
             //translate to french
             label_zoneID.setText("ID de zone : France");
             label_password.setText("Mot de passe");
@@ -69,23 +72,14 @@ public class Controller {
 
         if (login) {
             try {
-                switchScene();
+                Main.switchScene("/sample/homePage.fxml", Main.getStage());
             }
             catch (Exception e) {
-                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
         }
 
         label_message.setText(Login.getMessage());
-    }
-
-    public void switchScene() throws Exception {
-        System.out.println("Switching Scene...");
-        root = FXMLLoader.load(getClass().getResource("/sample/records.fxml"));
-
-        Stage window = (Stage) btn_submit.getScene().getWindow();
-        window.setScene(new Scene(root));
-        window.show();
     }
 
     public static ObservableList<String> getTableOfStates(String country) {
@@ -110,6 +104,8 @@ public class Controller {
                 else if (country.equals("Canada") && (Integer.parseInt(id) >= 60 && Integer.parseInt(id) <= 72)){
                     states.add(rs.getString("Division"));
                 }
+
+                statesHashMap.put(rs.getString("Division"), Integer.parseInt(id));
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();

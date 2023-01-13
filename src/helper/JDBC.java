@@ -1,10 +1,11 @@
 package helper;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.HashMap;
 
 public abstract class JDBC {
 
@@ -46,6 +47,23 @@ public abstract class JDBC {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public static HashMap<Integer, String> getAllStates() throws SQLException{
+        //get table of states
+        Connection conn = startConnection();
+        String sql = "SELECT * FROM client_schedule.first_level_divisions;";
+        HashMap<Integer, String> statesHashMap = new HashMap<Integer, String>();
+
+        Statement statement = conn.createStatement();
+        ResultSet rs = statement.executeQuery(sql);
+
+        while (rs.next()) {
+            String id = rs.getString("Division_ID");
+            statesHashMap.put(Integer.parseInt(id), rs.getString("Division"));
+        }
+
+        return statesHashMap;
     }
 
 
