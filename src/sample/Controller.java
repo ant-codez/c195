@@ -4,24 +4,16 @@ import helper.JDBC;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import helper.Login;
-import javafx.stage.Stage;
-import javafx.scene.control.ComboBox;
 
-import javax.xml.transform.Result;
-import java.io.IOException;
 import java.sql.*;
-import java.util.ArrayList;
+import java.time.ZoneId;
 import java.util.HashMap;
 
 public class Controller {
-    private Parent root;
 
     @FXML
     private Button btn_submit;
@@ -59,7 +51,7 @@ public class Controller {
             label_banner.setText("Identifiant");
         }
         else {
-            label_zoneID.setText("Zone ID : America");
+            label_zoneID.setText("Zone ID : " + ZoneId.systemDefault());
         }
     }
 

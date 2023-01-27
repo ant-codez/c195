@@ -5,7 +5,10 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 public abstract class JDBC {
 
@@ -64,6 +67,66 @@ public abstract class JDBC {
         }
 
         return statesHashMap;
+    }
+
+    public static ObservableList<User> getAllUsers() throws SQLException {
+        Connection conn = startConnection();
+        String sql = "SELECT * FROM client_schedule.users";
+        ObservableList<User> userList = FXCollections.observableArrayList();
+
+        Statement statement = conn.createStatement();
+        ResultSet rs = statement.executeQuery(sql);
+
+        while (rs.next()) {
+            int id = rs.getInt("User_ID");
+            String name = rs.getString("User_Name");
+            String password = rs.getString("Password");
+
+            userList.add(new User(id, name, password));
+        }
+
+        return userList;
+    }
+
+    public static ObservableList<Customer> getAllCustomers() throws SQLException {
+        Connection conn = startConnection();
+        String sql = "SELECT * FROM client_schedule.customers;";
+        ObservableList<Customer> userList = FXCollections.observableArrayList();
+
+        Statement statement = conn.createStatement();
+        ResultSet rs = statement.executeQuery(sql);
+
+        while (rs.next()) {
+            int id = rs.getInt("Customer_ID");
+            int division_id = rs.getInt("Division_ID");
+            String name = rs.getString("Customer_name");
+            String address = rs.getString("Address");
+            String postal = rs.getString("Postal_Code");
+            String phone = rs.getString("Phone");
+
+            userList.add(new Customer(id, name, address, postal, phone, division_id));
+        }
+
+        return userList;
+    }
+
+    public static ObservableList<Contact> getAllContacts() throws SQLException {
+        Connection conn = startConnection();
+        String sql = "SELECT * FROM client_schedule.contacts;";
+        ObservableList<Contact> userList = FXCollections.observableArrayList();
+
+        Statement statement = conn.createStatement();
+        ResultSet rs = statement.executeQuery(sql);
+
+        while (rs.next()) {
+            int id = rs.getInt("Contact_ID");
+            String name = rs.getString("Contact_Name");
+            String email = rs.getString("Email");
+
+            userList.add(new Contact(id, name, email));
+        }
+
+        return userList;
     }
 
 

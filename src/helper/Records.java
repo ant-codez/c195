@@ -58,7 +58,6 @@ public class Records {
 
         return customerList;
     }
-    //(Customer_Name, Address, Postal_Code, Phone, Division_ID)
 
     public static Boolean updateCustomerRecord(String name, String address, String postal, String phone, int division_ID, int ID) throws SQLException {
         Connection conn = helper.JDBC.startConnection();

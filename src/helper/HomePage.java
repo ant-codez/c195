@@ -35,4 +35,19 @@ public class HomePage {
         sample.Records.setState("Update");
         Main.switchScene("/sample/records.fxml", Main.getStage());
     }
+
+    @FXML public void addAppointment() throws Exception {
+        sample.Appointment.setState("Add");
+        Main.switchScene("/sample/appointment.fxml", Main.getStage());
+    }
+
+    @FXML public void deleteAppointment() throws Exception {
+        sample.Appointment.setState("Delete");
+        Main.switchScene("/sample/appointment.fxml", Main.getStage());
+    }
+
+    @FXML public void updateAppointment() throws Exception {
+        sample.Appointment.setState("Update");
+        Main.switchScene("/sample/appointment.fxml", Main.getStage());
+    }
 }

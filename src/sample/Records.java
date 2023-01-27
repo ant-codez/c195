@@ -4,6 +4,7 @@ import helper.Customer;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -11,8 +12,10 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.AnchorPane;
 
 import java.sql.SQLException;
+import java.util.Set;
 import java.util.Vector;
 
 
@@ -21,6 +24,8 @@ public class Records {
     ObservableList<Customer> customerList;
     private static String state = "Empty";
 
+    @FXML
+    private AnchorPane anchorPane;
     @FXML
     private Button btn_add;
     @FXML
@@ -63,7 +68,7 @@ public class Records {
     @FXML public void updateState() {
         System.out.println("CALL UPDATE STATE");
 
-        if (cb_country.getSelectionModel().isEmpty() == false) {
+        if (cb_country.getSelectionModel().isEmpty() == false && !state.equals("Delete")) {
             cb_state.setDisable(false);
             cb_state.setItems(sample.Controller.getTableOfStates(cb_country.getSelectionModel().getSelectedItem()));
             System.out.println("Enabled Combo Box...");
@@ -115,7 +120,7 @@ public class Records {
     private void deleteRecord() throws Exception {
         System.out.println("Deleting Customer Data in DataBase...");
         Integer userID = Integer.parseInt(tf_ID.getText());
-        
+
         if (!Main.alertConfirmation("Are you sure you want to delete this user??")) {
             System.out.println("Canceled Deleting User...");
             return;
@@ -124,6 +129,7 @@ public class Records {
         helper.Records.deleteCustomerRecord(userID);
 
         Main.alertSuccess("Successfully Deleted Customer Record!!");
+        removeTextFromFields();
         initialize();
     }
 
@@ -143,6 +149,7 @@ public class Records {
         System.out.println("State = " + state);
 
         if (state.equals("Delete")) {
+            disableElements();
             label_title.setText("Delete Record");
             btn_add.setText("Delete Record");
         }
@@ -187,6 +194,29 @@ public class Records {
         col_postal.setCellValueFactory(new PropertyValueFactory<Customer, Integer>("postalCode"));
         col_division.setCellValueFactory(new PropertyValueFactory<Customer, Integer>("division_ID"));
         col_phone.setCellValueFactory(new PropertyValueFactory<Customer, Integer>("phoneNumber"));
+    }
+
+    public void disableElements() {
+        Set<Node> group =  anchorPane.lookupAll(".input");
+
+        System.out.println(group.size());
+
+        for (Node node : group) {
+            node.setDisable(true);
+        }
+    }
+
+    public void removeTextFromFields() {
+        Set<Node> group =  anchorPane.lookupAll(".input");
+
+        for (Node node : group) {
+            if(node instanceof TextField){
+                ((TextField) node).clear();
+            }
+            else if(node instanceof ComboBox){
+                ((ComboBox) node).setValue("");
+            }
+        }
 
     }
 
