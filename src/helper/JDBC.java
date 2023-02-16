@@ -2,13 +2,8 @@ package helper;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.fxml.FXML;
-
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 
 public abstract class JDBC {
 
@@ -28,6 +23,11 @@ public abstract class JDBC {
 
     private static Connection conn = null;
 
+    /**
+     * This method establishes a connection to the database.
+     * @return the database connection
+     */
+
     public static Connection startConnection() {
         try {
             Class.forName(MYSQLJBDriver);
@@ -43,6 +43,9 @@ public abstract class JDBC {
         return conn;
     }
 
+    /**
+     * This method closes the database connection.
+     */
     public static void closeConnection() {
         try {
             conn.close();
@@ -52,6 +55,11 @@ public abstract class JDBC {
         }
     }
 
+    /**
+     * This method retrieves all states from the first_level_divisions table.
+     * @return a HashMap containing the Division_ID and Division Name of all states
+     * @throws SQLException if there is an error in executing the SQL statement
+     */
     public static HashMap<Integer, String> getAllStates() throws SQLException{
         //get table of states
         Connection conn = startConnection();
@@ -69,6 +77,11 @@ public abstract class JDBC {
         return statesHashMap;
     }
 
+    /**
+     * This method retrieves all users from the users table.
+     * @return an ObservableList containing all users
+     * @throws SQLException if there is an error in executing the SQL statement
+     */
     public static ObservableList<User> getAllUsers() throws SQLException {
         Connection conn = startConnection();
         String sql = "SELECT * FROM client_schedule.users";
@@ -88,6 +101,11 @@ public abstract class JDBC {
         return userList;
     }
 
+    /**
+     * This method retrieves all customers from the customers table.
+     * @return an ObservableList containing all customers
+     * @throws SQLException if there is an error in executing the SQL statement
+     */
     public static ObservableList<Customer> getAllCustomers() throws SQLException {
         Connection conn = startConnection();
         String sql = "SELECT * FROM client_schedule.customers;";
@@ -110,6 +128,11 @@ public abstract class JDBC {
         return userList;
     }
 
+    /**
+     * This method retrieves all contacts from the contacts table.
+     * @return an ObservableList containing all contacts
+     * @throws SQLException if there is an error in executing the SQL statement
+     */
     public static ObservableList<Contact> getAllContacts() throws SQLException {
         Connection conn = startConnection();
         String sql = "SELECT * FROM client_schedule.contacts;";

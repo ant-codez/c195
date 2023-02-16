@@ -12,8 +12,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -21,33 +19,22 @@ import java.text.ParseException;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.WeekFields;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.Calendar;
+import java.util.TimeZone;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Controller class for managing customer Appointments GUI as well as the functions associated with it
+ */
+
 public class Appointment {
     private static String state = "None";
-    private static ObservableList<String> locations = FXCollections.observableArrayList("Phoenix", "Arizona", "White Plains", "New York", "Montreal", "Canada", "London", "England");
-
-    @FXML
-    private AnchorPane anchorPane;
+    private static ObservableList<String> locations = FXCollections.observableArrayList("Phoenix, Arizona", "White Plains, New York", "Montreal, Canada", "London, England");
 
     @FXML
     private Button btn_add;
-
-    @FXML
-    private Button btn_back;
-
-    @FXML
-    private RadioButton rb_month;
-
-    @FXML
-    private RadioButton rb_none;
-
-    @FXML
-    private RadioButton rb_week;
 
     @FXML
     private ComboBox<Contact> cb_contact;
@@ -109,9 +96,6 @@ public class Appointment {
     private TextField tf_endTime;
 
     @FXML
-    private TextField tf_location;
-
-    @FXML
     private TextField tf_startTime;
 
     @FXML
@@ -120,15 +104,32 @@ public class Appointment {
     @FXML
     private TextField tf_type;
 
+
+    /**
+     * Sets the state variable
+     * @param _state a string representing the current state of the Appointment class
+     */
     public static void setState(String _state) {
         state = _state;
     }
+
+    /**
+     * Handles the back button functionality, switches the scene to the homepage
+     * @param event The event representing the back button click
+     * @throws IOException If an input or output exception occurs
+     */
 
     @FXML
     void back(ActionEvent event) throws IOException {
         Main.switchScene("/sample/homepage.fxml", Main.getStage());
     }
 
+    /**
+     * Handles the button click functionality for add, update, and delete appointment buttons
+     * @param event The event representing the button click
+     * @throws ParseException If an error occurs while parsing a string
+     * @throws SQLException If an error occurs with the database
+     */
     @FXML
     void btnClick(ActionEvent event) throws ParseException, SQLException {
         if (state.equals("Add")) {
@@ -138,7 +139,7 @@ public class Appointment {
              };
         }
         else if (state.equals("Update")) {
-            if (updateAppointment()) {
+            if (addAppointment()) {
                 Main.alertSuccess("Successfully updated Appointment!!");
                 setUpTable();
             }
@@ -151,6 +152,11 @@ public class Appointment {
         }
     }
 
+    /**
+     * Deletes the appointment with the given ID
+     * @return true if the appointment is deleted, false otherwise
+     * @throws SQLException If an error occurs with the database
+     */
     boolean deleteAppointment() throws SQLException {
         System.out.println("Deleting Appointment Records");
         Integer ID = Integer.parseInt(tf_appointmentID.getText());
@@ -163,28 +169,12 @@ public class Appointment {
         return Appointments.deleteAppointment(ID);
     }
 
-    boolean updateAppointment() throws SQLException, ParseException {
-        System.out.println("Updating  appointment...");
-        int id = Integer.parseInt(tf_appointmentID.getText());
-        Customer customerID = cb_customerID.getSelectionModel().getSelectedItem();
-        User user_ID = cb_userID.getSelectionModel().getSelectedItem();
-        String title = tf_title.getText();
-        String description = tf_description.getText();
-        String location = cb_location.getSelectionModel().getSelectedItem();
-        Contact contact = cb_contact.getSelectionModel().getSelectedItem();
-        String type = tf_type.getText();
-        String startTime = tf_startTime.getText();
-        String endTime = tf_endTime.getText();
-        LocalDate date = dp_date.getValue();
-        Timestamp start = Timestamp.valueOf(convertTimeString(startTime).with(date).toLocalDateTime());
-        Timestamp end = Timestamp.valueOf(convertTimeString(endTime).with(date).toLocalDateTime());
-
-
-        Appointments app = new Appointments(customerID.getID(), user_ID.getID(), id, title, description, location, contact.getID(),type, start, end);
-
-        return app.updateAppointment(id);
-    }
-
+    /**
+     * Adds a new appointment to the database
+     * @return true if the appointment is added, false otherwise
+     * @throws ParseException If an error occurs while parsing a string
+     * @throws SQLException If an error occurs with the database
+     */
     boolean addAppointment() throws ParseException, SQLException {
         System.out.println("Adding appointment...");
         Customer customerID = cb_customerID.getSelectionModel().getSelectedItem();
@@ -211,23 +201,39 @@ public class Appointment {
             return false;
         }
 
-        start = convertTimeString(startTime);
-        end = convertTimeString(endTime);
+        //convert startTime and endTime String into ZonedDateTime objects
+        start = convertTimeString(startTime, date);
+        end = convertTimeString(endTime, date);
 
         //check to see if time is within working hours
         if (!isWorkHours(start, end)) {
             return false;
         }
 
-        //if times are overlapping then we return false
-        if (isAppOverlapping(Timestamp.valueOf(start.with(date).toLocalDateTime()), Timestamp.valueOf(end.with(date).toLocalDateTime()))) {
-            Main.alertError("Error!! Time is Unavailable, please choose another time.");
-            return false;
+        //this is for the update button
+        if (state.equals("Update")) {
+            if (isAppOverlapping(Timestamp.valueOf(start.toLocalDateTime()), Timestamp.valueOf(end.toLocalDateTime()), Integer.parseInt(tf_appointmentID.getText()))) {
+                Main.alertError("Error!! Time is Unavailable, please choose another time.");
+                return false;
+            }
+        }
+        else if (state.equals("Add")) {
+            //if times are overlapping then we return false
+            if (isAppOverlapping(Timestamp.valueOf(start.toLocalDateTime()), Timestamp.valueOf(end.toLocalDateTime()))) {
+                Main.alertError("Error!! Time is Unavailable, please choose another time.");
+                return false;
+            }
         }
 
-        Appointments app = new Appointments(customerID.getID(), user_ID.getID(), 42, title, description, location, contact.getID(), type, Timestamp.valueOf(start.with(date).toLocalDateTime()), Timestamp.valueOf(end.with(date).toLocalDateTime()));
+        Appointments app = new Appointments(customerID.getID(), user_ID.getID(), 42, title, description, location, contact.getID(), type, convertToTimestamp(start.withZoneSameInstant(ZoneId.of("UTC"))), convertToTimestamp(end.withZoneSameInstant(ZoneId.of("UTC"))));
 
-        return app.addAppointment();
+        if (state.equals("Add"))
+            return app.addAppointment();
+        else if (state.equals("Update")) {
+            return app.updateAppointment(Integer.parseInt(tf_appointmentID.getText()));
+        }
+
+        return false;
     }
 
     boolean isWorkHours(ZonedDateTime start, ZonedDateTime end) {
@@ -248,12 +254,52 @@ public class Appointment {
         return true;
     }
 
+    /**
+     * Checks if the specified time range overlaps with any existing appointment times in the database.
+     * @param start the starting time of the range to check for overlaps
+     * @param end the ending time of the range to check for overlaps
+     * @return true if the specified time range overlaps with an existing appointment time, false otherwise
+     * @throws SQLException if there is an error while querying the database
+     */
     boolean isAppOverlapping(Timestamp start, Timestamp end) throws SQLException {
         System.out.println("Checking if TimeStamps are overlapping");
         ObservableList<Appointments> apps = Appointments.getAppointments();
 
+        ZonedDateTime s = start.toLocalDateTime().atZone(ZoneId.systemDefault());
+        ZonedDateTime e = end.toLocalDateTime().atZone(ZoneId.systemDefault());
+
         for (Appointments appointment: apps) {
-           if ((!appointment.getStartTime().after(end) && !appointment.getStartTime().before(start)) || (!appointment.getEndTime().after(start) && !appointment.getEndTime().before(end))) {
+            ZonedDateTime appStart = appointment.getStartTime().toLocalDateTime().atZone(ZoneId.of("UTC"));
+            ZonedDateTime appEnd = appointment.getEndTime().toLocalDateTime().atZone(ZoneId.of("UTC"));
+
+           if (appStart.isBefore(e) && s.isBefore(appEnd)) {
+                System.out.println("ERROR!! TimeStamps are overlapping!!");
+                return true;
+            }
+        }
+
+        return false;
+    }
+    /**
+     * Checks if the specified time range overlaps with any existing appointment times in the database.
+     * @param start the starting time of the range to check for overlaps
+     * @param end the ending time of the range to check for overlaps
+     * @param id The id of the current appointment that we want to overwrite
+     * @return true if the specified time range overlaps with an existing appointment time, false otherwise
+     * @throws SQLException if there is an error while querying the database
+     */
+    boolean isAppOverlapping(Timestamp start, Timestamp end, Integer id) throws SQLException {
+        System.out.println("Checking if TimeStamps are overlapping");
+        ObservableList<Appointments> apps = Appointments.getAppointments();
+
+        ZonedDateTime s = start.toLocalDateTime().atZone(ZoneId.systemDefault());
+        ZonedDateTime e = end.toLocalDateTime().atZone(ZoneId.systemDefault());
+
+        for (Appointments appointment: apps) {
+            ZonedDateTime appStart = appointment.getStartTime().toLocalDateTime().atZone(ZoneId.of("UTC"));
+            ZonedDateTime appEnd = appointment.getEndTime().toLocalDateTime().atZone(ZoneId.of("UTC"));
+
+            if (appStart.isBefore(e) && s.isBefore(appEnd) && appointment.getID() != id) {
                 System.out.println("ERROR!! TimeStamps are overlapping!!");
                 return true;
             }
@@ -263,11 +309,12 @@ public class Appointment {
     }
 
     /**
-     *
+     * Checks if the parameters entered are in a valid format to be parsed into time objects
      * @param startTime String representing the start time of an appointment in hh:mm (AM|PM) format
      * @param endTime String representing the end time of an appointment in hh:mm (AM|PM) format
      * @return true if both parameters are valid time strings else false
      */
+
     boolean validateTime(String startTime, String endTime) {
         Pattern pattern = Pattern.compile("^([0-1]?[0-9]|2[0-3]):[0-5][0-9] (AM|PM)$");
         Matcher matchStartTime = pattern.matcher(startTime);
@@ -280,36 +327,73 @@ public class Appointment {
         return false;
     }
 
-    ZonedDateTime convertTimeString(String Time) throws ParseException {
+    /**
+     * Convert a Time String and LocalDate into a ZonedDateTime object
+     * @param Time String representing a time in 'hh:mm a' format
+     * @param date LocalDate of the users chosen date of appointment from UI
+     * @return ZonedDateTime object holding a date and a time in the users local timezone
+     * @throws ParseException
+     */
+
+    ZonedDateTime convertTimeString(String Time, LocalDate date) throws ParseException {
         DateTimeFormatter format = DateTimeFormatter.ofPattern("h:mm a");
         LocalTime time = LocalTime.parse(Time, format);
-        ZonedDateTime zonedTime = ZonedDateTime.of(LocalDate.now(), time, ZoneId.systemDefault());
+        LocalDateTime tempLDT = LocalDateTime.of(date, time);
+        ZonedDateTime zonedTime = ZonedDateTime.of(tempLDT, ZoneId.systemDefault());
 
         System.out.println("Time = " + Time + " ---> " + zonedTime);
         return zonedTime;
     }
 
+    /**
+     * Converts a ZonedDateTime object to a Timestamp object.
+     * @param time the ZonedDateTime object to be converted.
+     * @return the Timestamp object representing the given ZonedDateTime.
+     */
+
+    Timestamp convertToTimestamp(ZonedDateTime time) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+        LocalDateTime localDateTime = time.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime();
+        Timestamp newTime = Timestamp.valueOf(localDateTime);
+        System.out.println(time + " ---> " + localDateTime + " ---> " + newTime);
+        return newTime;
+    }
+
+    /**
+     * Gets the mouse click event for the appointments table and populates the form with the selected appointment's data.
+     * @param event the MouseEvent object representing the mouse click event.
+     * @throws SQLException if an error occurs while accessing the database.
+     */
     @FXML
     void getMouseClick(MouseEvent event) throws SQLException {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm a");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mm a").withZone(ZoneId.systemDefault());
         Appointments selected = table.getSelectionModel().getSelectedItem();
+
+        ZonedDateTime startTemp = selected.getStartTime().toLocalDateTime().atZone(ZoneId.of("UTC"));
+        ZonedDateTime endTemp = selected.getEndTime().toLocalDateTime().atZone(ZoneId.of("UTC"));
+        String start = startTemp.format(formatter);
+        String end = endTemp.format(formatter);
 
         if (state.equals("Update") || state.equals("Delete")) {
             tf_appointmentID.setText(Integer.toString(selected.getID()));
             tf_description.setText(selected.getDescription());
-            tf_endTime.setText(selected.getEndTime().toString());
-            tf_startTime.setText(selected.getStartTime().toLocalDateTime().format(formatter));
-            tf_endTime.setText(selected.getEndTime().toLocalDateTime().format(formatter));
+            tf_startTime.setText(start);
+            tf_endTime.setText(end);
             tf_title.setText(selected.getTitle());
             tf_type.setText(selected.getType());
             cb_location.setValue(selected.getLocation());
             cb_contact.getSelectionModel().select(selected.getContactID() - 1);
             cb_userID.getSelectionModel().select(selected.getUserID() - 1);
             cb_customerID.getSelectionModel().select(selected.getCustomerID() - 1);
-            dp_date.setValue(selected.getStartTime().toLocalDateTime().toLocalDate());
+            dp_date.setValue(startTemp.toLocalDateTime().toLocalDate());
         }
     }
 
+    /**
+     * Sets up the appointments table with its columns and data.
+     * @throws SQLException if an error occurs while accessing the database.
+     */
     void setUpTable() throws SQLException {
 
         table.setItems(Appointments.getAppointments());
@@ -383,6 +467,9 @@ public class Appointment {
 
     }
 
+    /**
+     * Checks the state variable each time this function is called and dispatches the appropriate function based on state.
+     */
     void checkState() {
         if (state.equals("Add")) {
             label_title.setText("Add Appointment");
@@ -397,20 +484,35 @@ public class Appointment {
 
     }
 
+    /**
+     * This function runs when one of three radio buttons are pressed. Depending on the button presses a
+     * different lambda expression is called to effect the table
+     */
     @FXML
     void radioBtnAction(ActionEvent event) throws SQLException {
         String name = ((RadioButton) event.getSource()).getText();
         System.out.println("Radio button clicked : " + name);
 
-
         if (name.equals("Month")) {
             setUpTable();
+
+            /**
+             * A predicate that returns true if the Appointments object being tested occurs in the current month.
+             * @param myData the Appointments object to be checked
+             * @return true if the object occurs within the current week, false otherwise
+             */
             Predicate<Appointments> currentMonth = myData ->
                     myData.getStartTime().toLocalDateTime().getMonthValue() == LocalDate.now().getMonthValue();
 
             table.setItems(table.getItems().filtered(currentMonth));
         } else if (name.equals("Week")) {
             setUpTable();
+            /**
+             * A predicate to check if the given Appointments object occurs within the current week.
+             * The check is based on the week number of the given object's start time and the current week number.
+             * @param myData the Appointments object to be checked
+             * @return true if the object occurs within the current week, false otherwise
+             */
             Predicate<Appointments> currentWeek = myData ->
                     myData.getStartTime().toLocalDateTime().get(WeekFields.ISO.weekOfWeekBasedYear()) == LocalDate.now().get(WeekFields.ISO.weekOfWeekBasedYear());
 
@@ -419,11 +521,13 @@ public class Appointment {
         else if (name.equals("None")) {
             setUpTable();
         }
-
-
-
     }
 
+    /**
+     * Initialize the Appointment view.
+     * @throws ParseException if there is an error parsing the date
+     * @throws SQLException if there is an error with the SQL query
+     */
     @FXML public void initialize() throws ParseException, SQLException {
         System.out.println("INIT");
 

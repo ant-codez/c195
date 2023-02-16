@@ -2,7 +2,6 @@ package sample;
 
 import helper.Customer;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -16,8 +15,6 @@ import javafx.scene.layout.AnchorPane;
 
 import java.sql.SQLException;
 import java.util.Set;
-import java.util.Vector;
-
 
 public class Records {
 
@@ -28,8 +25,6 @@ public class Records {
     private AnchorPane anchorPane;
     @FXML
     private Button btn_add;
-    @FXML
-    private Button btn_back;
     @FXML
     private ComboBox<String> cb_country;
     @FXML
@@ -65,6 +60,9 @@ public class Records {
         state = _state;
     }
 
+    /**
+     * Updates the state based on the user's input and enables or disables the state combo box accordingly.
+     */
     @FXML public void updateState() {
         System.out.println("CALL UPDATE STATE");
 
@@ -75,6 +73,10 @@ public class Records {
         }
     }
 
+    /**
+     * Adds a new customer record to the database.
+     * @throws SQLException if there is an error accessing the database
+     */
     private void addRecord() throws SQLException {
         System.out.println("Adding Customer Data to DataBase...");
         String Name = tf_name.getText();
@@ -95,6 +97,10 @@ public class Records {
         initialize();
     }
 
+    /**
+     * Updates an existing customer record in the database.
+     * @throws Exception if there is an error accessing the database
+     */
     private void updateRecord() throws Exception {
         System.out.println("Updating Customer Data in DataBase...");
 
@@ -117,6 +123,10 @@ public class Records {
         initialize();
     }
 
+    /**
+     * Deletes an existing customer record from the database.
+     * @throws Exception if there is an error accessing the database
+     */
     private void deleteRecord() throws Exception {
         System.out.println("Deleting Customer Data in DataBase...");
         Integer userID = Integer.parseInt(tf_ID.getText());
@@ -126,6 +136,9 @@ public class Records {
             return;
         }
 
+        //delete all Appointments associated with Customer
+        helper.Records.deleteAppointments(userID);
+        //delete customer from DB
         helper.Records.deleteCustomerRecord(userID);
 
         Main.alertSuccess("Successfully Deleted Customer Record!!");
@@ -133,6 +146,10 @@ public class Records {
         initialize();
     }
 
+    /**
+     * Performs the appropriate action when the button is clicked.
+     * @throws Exception if there is an error accessing the database
+     */
     @FXML public void btnClick() throws Exception {
         if (state.equals("Delete")) {
             deleteRecord();
@@ -145,6 +162,9 @@ public class Records {
         }
     }
 
+    /**
+     * Checks the current state and updates the UI elements accordingly.
+     */
     private void checkState() {
         System.out.println("State = " + state);
 
@@ -163,6 +183,10 @@ public class Records {
         }
     }
 
+    /**
+     * This function is triggered when the user clicks on a row in the table. It retrieves the selected Customer object from the TableView,
+     * and populates the form fields with the customer's information if the application is in either "Update" or "Delete" state.
+     */
     @FXML public void getMouseClick() {
         System.out.println("Getting mouse click");
         Customer selected = table.getSelectionModel().getSelectedItem();
@@ -180,6 +204,11 @@ public class Records {
 
     }
 
+    /**
+     * This function is executed when the FXML file is loaded. It sets up the TableView
+     * to display Customer records, and populates the ComboBox with the available country options.
+     * @throws SQLException if there is an error accessing the database
+     */
     @FXML public void initialize() throws SQLException {
         System.out.println("TEST INIT");
 
@@ -196,6 +225,10 @@ public class Records {
         col_phone.setCellValueFactory(new PropertyValueFactory<Customer, Integer>("phoneNumber"));
     }
 
+    /**
+     * This function is called to disable all input elements in the AnchorPane.
+     * It retrieves all the Node objects with the CSS class "input" and sets their disable property to true.
+     */
     public void disableElements() {
         Set<Node> group =  anchorPane.lookupAll(".input");
 
@@ -220,6 +253,10 @@ public class Records {
 
     }
 
+    /**
+     * This function is called when the user clicks the "Back" button in the UI. It switches the scene to the homepage.fxml file.
+     * @throws Exception if there is an error accessing the file
+     */
     @FXML public void back() throws Exception {
         Main.switchScene("/sample/homepage.fxml", Main.getStage());
     }

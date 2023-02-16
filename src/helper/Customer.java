@@ -39,38 +39,74 @@ public class Customer {
         this.state_Name = statesHashMap.get(this.division_ID);
     }
 
+    /**
+     * Retrieves the name of the state associated with the address.
+     * @return The name of the state.
+     */
     public String getState_Name() {
         return state_Name;
     }
 
+    /**
+     * Retrieves the name of the country associated with the address.
+     * @return The name of the country.
+     */
     public String getCountry_Name() {
         return country_Name;
     }
 
+    /**
+     * Retrieves the id of the country associated with the address.
+     * @return The id of the country.
+     */
     public int getCountry_id() {
         return country_id;
     }
 
+    /**
+     * Retrieves the name associated with the address.
+     * @return The name.
+     */
     public String getName() {
         return this.name;
     }
 
+    /**
+     * Retrieves the address.
+     * @return The address.
+     */
     public String getAddress() {
         return this.address;
     }
 
+    /**
+     * Retrieves the postal code associated with the address.
+     * @return The postal code.
+     */
     public String getPostalCode() {
         return this.postalCode;
     }
 
+    /**
+     * Retrieves the phone number associated with the address.
+     * @return The phone number.
+     */
     public String getPhoneNumber() {
         return this.phoneNumber;
     }
 
+    /**
+     * Retrieves the ID of the address.
+     * @return The ID.
+     */
     public int getID() {
         return this.ID;
     }
 
+    /**
+     * Retrieves the ID of the division associated with the address.
+     * @return The ID of the division.
+     */
     public int getDivision_ID() {
         return this.division_ID;
     }
